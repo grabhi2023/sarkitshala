@@ -1,0 +1,260 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+/* =================================================
+   THEME TOKENS
+   ================================================= */
+@theme {
+  --color-bg-main:      #f8fafc;
+  --color-bg-main-dark: #020617;
+  --color-text-main:    #334155;
+  --color-text-main-dark: #cbd5e1;
+}
+
+/* =================================================
+   BASE
+   ================================================= */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-bg-main);
+  color: var(--color-text-main);
+  @apply antialiased transition-colors duration-300;
+}
+
+.dark body {
+  background-color: var(--color-bg-main-dark);
+  color: var(--color-text-main-dark);
+}
+
+/* =================================================
+   LAYOUT WRAPPER
+   (sidebar + main grid on desktop, stack on mobile)
+   ================================================= */
+.layout-wrapper {
+  @apply max-w-[1400px] mx-auto pt-20 min-h-screen px-3 transition-all duration-300;
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr;   /* mobile: full width */
+}
+
+@media (min-width: 1024px) {
+  .layout-wrapper {
+    grid-template-columns: 260px 1fr;
+    padding-top: 5.5rem;
+  }
+}
+
+/* =================================================
+   MAIN CONTENT AREA
+   ================================================= */
+.main-content {
+  @apply min-w-0 py-4 lg:py-6 transition-all;
+}
+
+/* =================================================
+   ARTICLE CONTAINER
+   Core reading area — used for MDX/dynamic HTML
+   ================================================= */
+.articleContainer {
+  @apply max-w-[860px] mx-auto
+    bg-white dark:bg-slate-950
+    rounded-2xl shadow-sm
+    border border-slate-200 dark:border-slate-800
+    leading-relaxed transition-colors duration-300;
+  padding: 2rem;
+}
+
+/* --- Headings --- */
+.articleContainer h1 {
+  @apply text-3xl font-bold mt-4 mb-5
+    border-l-4 border-blue-600 pl-3
+    text-slate-900 dark:text-white
+    leading-tight;
+}
+
+.articleContainer h2 {
+  @apply text-2xl font-semibold mt-8 mb-3
+    border-l-4 border-blue-500 pl-3
+    text-slate-900 dark:text-white;
+}
+
+.articleContainer h3 {
+  @apply text-xl font-semibold mt-6 mb-2
+    text-slate-800 dark:text-slate-100;
+}
+
+.articleContainer h4 {
+  @apply text-lg font-semibold mt-5 mb-2
+    text-slate-700 dark:text-slate-200;
+}
+
+/* --- Paragraphs --- */
+.articleContainer p {
+  @apply text-base mb-4 leading-relaxed
+    text-slate-700 dark:text-slate-300;
+}
+
+/* --- Lists --- */
+.articleContainer ul {
+  @apply list-disc pl-5 mb-4 space-y-1.5
+    text-slate-700 dark:text-slate-300;
+}
+
+.articleContainer ol {
+  @apply list-decimal pl-5 mb-4 space-y-1.5
+    text-slate-700 dark:text-slate-300;
+}
+
+.articleContainer li {
+  @apply leading-relaxed text-base;
+}
+
+/* --- Links --- */
+.articleContainer a {
+  @apply inline-flex items-center gap-1
+    px-3 py-1.5 text-sm font-medium
+    text-blue-600 dark:text-blue-400
+    bg-blue-50 dark:bg-blue-950/40
+    border border-blue-200 dark:border-blue-800
+    rounded-lg shadow-sm
+    transition-all duration-200;
+}
+
+.articleContainer a:hover {
+  @apply text-blue-700 dark:text-blue-300
+    bg-blue-100 dark:bg-blue-900/50
+    border-blue-300 dark:border-blue-700
+    -translate-y-px shadow-md;
+}
+
+.articleContainer a:active {
+  @apply translate-y-0 shadow-sm;
+}
+
+/* --- Inline Code --- */
+.articleContainer code {
+  @apply bg-slate-100 dark:bg-slate-800
+    text-pink-600 dark:text-pink-400
+    px-1.5 py-0.5 rounded-md text-sm font-mono;
+}
+
+/* --- Code Block --- */
+.articleContainer pre {
+  @apply bg-slate-900 dark:bg-slate-950
+    text-green-400
+    p-5 rounded-xl overflow-x-auto
+    my-5 text-sm
+    border border-slate-700 dark:border-slate-800
+    shadow-inner;
+}
+
+.articleContainer pre code {
+  @apply bg-transparent p-0 text-inherit;
+}
+
+/* --- Table --- */
+.articleContainer table {
+  @apply w-full border border-slate-200 dark:border-slate-700
+    rounded-xl overflow-hidden my-6 text-sm;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.articleContainer th {
+  @apply bg-blue-600 text-white
+    px-4 py-3 text-left font-semibold text-sm
+    whitespace-nowrap;
+}
+
+.articleContainer td {
+  @apply px-4 py-3
+    border-t border-slate-200 dark:border-slate-700
+    bg-white dark:bg-slate-950
+    text-slate-700 dark:text-slate-300;
+}
+
+.articleContainer tr:nth-child(even) td {
+  @apply bg-slate-50 dark:bg-slate-900;
+}
+
+.articleContainer tr:hover td {
+  @apply bg-blue-50 dark:bg-slate-800;
+}
+
+/* --- Images --- */
+.articleContainer img {
+  @apply block mx-auto my-6 rounded-xl
+    shadow-md max-w-full h-auto
+    transition-transform duration-300;
+}
+
+.articleContainer img:hover {
+  @apply scale-[1.02];
+}
+
+/* --- Blockquote --- */
+.articleContainer blockquote {
+  @apply border-l-4 border-blue-500
+    pl-4 my-5 italic
+    text-slate-600 dark:text-slate-400
+    bg-blue-50 dark:bg-blue-950/20
+    rounded-r-lg py-2 pr-4;
+}
+
+/* --- HR --- */
+.articleContainer hr {
+  @apply border-slate-200 dark:border-slate-800 my-8;
+}
+
+/* =================================================
+   RESPONSIVE — articleContainer
+   ================================================= */
+@media (max-width: 768px) {
+  .articleContainer {
+    padding: 1.25rem;
+    @apply rounded-xl;
+  }
+
+  .articleContainer h1 { @apply text-2xl; }
+  .articleContainer h2 { @apply text-xl; }
+  .articleContainer h3 { @apply text-lg; }
+  .articleContainer h4 { @apply text-base; }
+  .articleContainer p  { @apply text-sm; }
+  .articleContainer li { @apply text-sm; }
+
+  .articleContainer a {
+    @apply px-2.5 py-1 text-xs;
+  }
+
+  .articleContainer table {
+    @apply block overflow-x-auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .articleContainer pre {
+    @apply p-4 text-xs rounded-lg;
+  }
+}
+
+@media (max-width: 480px) {
+  .layout-wrapper {
+    @apply px-1.5;
+  }
+
+  .articleContainer {
+    padding: 1rem;
+    @apply rounded-lg border-0 shadow-none;
+  }
+
+  .articleContainer h1 { @apply text-xl; }
+  .articleContainer h2 { @apply text-lg; }
+}
