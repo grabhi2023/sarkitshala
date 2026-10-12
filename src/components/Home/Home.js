@@ -2,14 +2,10 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useMemo } from "react";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@/components/ui/carousel";
-import Autoplay from "embla-carousel-autoplay";
-
+import { useMemo, useRef, useState } from 'react';
+import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
+import Autoplay from 'embla-carousel-autoplay';
+import SimulationEmbed from '../SimulationEmbed.jsx';
 import Footer from '../Footer/Footer';
 import MyBook from '../ArdBook';
 import RecentPosts from '../recentPost/Recent';
@@ -28,91 +24,63 @@ import img3 from '../../../public/images/raspTech.webp';
 import img4 from '../../../public/images/jetsonTech.webp';
 import img5 from '../../../public/images/droneTech.webp';
 
-const images = [
-  { src: image1.src, href: '/arduino' },
-  { src: image2.src, href: '/jetson' },
-  { src: image4.src, href: '/arduino' },
-  { src: image5.src, href: '/esp' },
-  { src: image6.src, href: '/raspberry' },
-  { src: image7.src, href: '/esp/dht11' },
-  { src: image8.src, href: '/drone' },
+
+
+const heroSlides = [
+  { image: image1, href: '/arduino', alt: 'Arduino projects and experiments on Sarkitshala' },
+  { image: image2, href: '/jetson', alt: 'Jetson Nano AI projects on Sarkitshala' },
+  { image: image4, href: '/arduino', alt: 'Arduino electronics learning resources' },
+  { image: image5, href: '/esp', alt: 'ESP32 IoT experiments on Sarkitshala' },
+  { image: image6, href: '/raspberry', alt: 'Raspberry Pi projects and tutorials' },
+  { image: image7, href: '/esp', alt: 'ESP32 sensor interfacing guides' },
+  { image: image8, href: '/drone', alt: 'Drone technology and embedded systems' },
 ];
 
 const exploreTechnologies = [
-  {
-    src: img1.src,
-    href: '/arduino',
-    title: 'Arduino',
-    desc: 'Open-source hardware for embedded electronics and prototyping.',
-    badge: 'Popular',
-  },
-  {
-    src: img2.src,
-    href: '/esp',
-    title: 'ESP32',
-    desc: 'WiFi + Bluetooth MCU for powerful IoT projects.',
-    badge: 'IoT',
-  },
-  {
-    src: img3.src,
-    href: '/raspberry',
-    title: 'Raspberry Pi',
-    desc: 'A tiny Linux computer for learning, coding, and making.',
-    badge: 'Linux',
-  },
-  {
-    src: img4.src,
-    href: '/jetson',
-    title: 'Jetson Nano',
-    desc: 'AI computing at the edge with GPU acceleration.',
-    badge: 'AI',
-  },
-  {
-    src: img5.src,
-    href: '/drone',
-    title: 'Drone Tech',
-    desc: 'Fly with embedded tech and remote sensing systems.',
-    badge: 'Advanced',
-  },
+  { src: img1, href: '/arduino', title: 'Arduino', desc: 'Open-source hardware for embedded electronics and prototyping.', badge: 'Popular' },
+  { src: img2, href: '/esp', title: 'ESP32', desc: 'WiFi and Bluetooth MCU for powerful IoT projects.', badge: 'IoT' },
+  { src: img3, href: '/raspberry', title: 'Raspberry Pi', desc: 'A tiny Linux computer for learning, coding, and making.', badge: 'Linux' },
+  { src: img4, href: '/jetson', title: 'Jetson Nano', desc: 'AI computing at the edge with GPU acceleration.', badge: 'AI' },
+  { src: img5, href: '/drone', title: 'Drone Tech', desc: 'Fly with embedded tech and remote sensing systems.', badge: 'Advanced' },
 ];
 
 const badgeColors = {
-  Popular: 'bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-400',
-  IoT: 'bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-400',
-  Linux: 'bg-green-100 text-green-700 dark:bg-green-950/50 dark:text-green-400',
-  AI: 'bg-violet-100 text-violet-700 dark:bg-violet-950/50 dark:text-violet-400',
-  Advanced: 'bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-400',
+  Popular: 'bg-orange-100 text-orange-700 dark:bg-orange-950 dark:text-orange-300',
+  IoT: 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300',
+  Linux: 'bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-300',
+  AI: 'bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300',
+  Advanced: 'bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300',
 };
 
+const iconButton =
+  'inline-flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700';
+
+
+
 export function HomePage() {
-  const plugin = useMemo(() =>
-    Autoplay({ delay: 4000, stopOnInteraction: true }), []);
+  const plugin = useMemo(() => Autoplay({ delay: 4000, stopOnInteraction: true }), []);
 
   return (
-    <main className="min-h-screen bg-background text-foreground transition-colors duration-300">
-
-      {/* Hero Section */}
-      <section className="max-w-7xl mx-auto pt-24 pb-12 px-4 md:px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-
-          {/* Carousel */}
+    <main className="min-h-screen bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      <section className="mx-auto max-w-7xl px-4 pb-10 pt-24 md:px-6">
+        <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-12">
           <div className="lg:col-span-8">
             <Carousel plugins={[plugin]} className="w-full" opts={{ loop: true }}>
               <CarouselContent>
-                {images.map((img, index) => (
-                  <CarouselItem key={index}>
-                    <Link href={img.href}>
-                      <div className="relative h-56 sm:h-72 md:h-[380px] w-full rounded-2xl overflow-hidden border border-border bg-muted">
-                        <Image
-                          src={img.src}
-                          alt={`Slide ${index + 1}`}
-                          fill
-                          priority={index === 0}
-                          className="object-cover hover:scale-[1.02] transition-transform duration-700"
-                        />
-                        {/* Subtle overlay on hover */}
-                        <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors duration-300" />
-                      </div>
+                {heroSlides.map((slide, index) => (
+                  <CarouselItem key={slide.href + index}>
+                    <Link
+                      href={slide.href}
+                      className="relative block h-56 w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 dark:border-slate-700 dark:bg-slate-800 sm:h-72 lg:h-[380px]"
+                    >
+                      <Image
+                        src={slide.image}
+                        alt={slide.alt}
+                        fill
+                        priority={index === 0}
+                        sizes="(max-width: 1024px) 100vw, 66vw"
+                        className="object-cover transition-transform duration-700 hover:scale-[1.03]"
+                      />
                     </Link>
                   </CarouselItem>
                 ))}
@@ -120,76 +88,59 @@ export function HomePage() {
             </Carousel>
           </div>
 
-          {/* Recent Posts */}
           <div className="lg:col-span-4">
             <RecentPosts />
           </div>
         </div>
       </section>
 
-      {/* Explore Technologies */}
-      <section className="max-w-7xl mx-auto py-12 px-4 md:px-6">
-
-        {/* Section Header */}
-        <div className="mb-8">
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
-            What we cover
-          </p>
-          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-            Explore Technologies
-          </h2>
+      <section className="mx-auto max-w-7xl px-4 pb-12 md:px-6">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Explore technologies</h2>
+          <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">Pick a platform and start with the basic experiments.</p>
         </div>
 
-        {/* Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {exploreTechnologies.map((tech, index) => (
-            <Link key={index} href={tech.href}>
-              <div className="
-                group relative rounded-2xl border border-border bg-card
-                hover:border-blue-500/40 hover:shadow-md
-                transition-all duration-250 overflow-hidden h-full
-              ">
-                {/* Image */}
-                <div className="relative h-40 overflow-hidden bg-muted">
-                  <Image
-                    src={tech.src}
-                    alt={tech.title}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  {/* Badge */}
-                  <span className={`absolute top-2.5 right-2.5 text-[10px] font-semibold px-2 py-0.5 rounded-full ${badgeColors[tech.badge]}`}>
-                    {tech.badge}
-                  </span>
-                </div>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-5">
+          {exploreTechnologies.map((tech) => (
+            <Link
+              key={tech.href}
+              href={tech.href}
+              className="group flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:border-blue-400 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-blue-500"
+            >
+              <div className="relative h-28 overflow-hidden bg-slate-100 dark:bg-slate-800 sm:h-36">
+                <Image
+                  src={tech.src}
+                  alt={`${tech.title} projects and experiments`}
+                  fill
+                  sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 20vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <span className={`absolute right-2 top-2 rounded-full px-2 py-0.5 text-[11px] font-semibold ${badgeColors[tech.badge]}`}>
+                  {tech.badge}
+                </span>
+              </div>
 
-                {/* Content */}
-                <div className="p-4">
-                  <h3 className="font-semibold text-sm text-foreground mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {tech.title}
-                  </h3>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    {tech.desc}
-                  </p>
-                </div>
+              <div className="flex flex-1 flex-col p-3 sm:p-4">
+                <h3 className="mb-1 text-sm font-semibold text-slate-900 transition-colors group-hover:text-blue-600 dark:text-slate-100 dark:group-hover:text-blue-400 sm:text-base">
+                  {tech.title}
+                </h3>
+                <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-400 sm:text-[13px]">{tech.desc}</p>
               </div>
             </Link>
           ))}
         </div>
       </section>
 
-      {/* Arduino Book Section */}
-      <section className="border-t border-border bg-muted/30 dark:bg-muted/10 py-12 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
-              Free Resource
-            </p>
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-              Arduino Book
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground">
-              A complete guide to electronics, automation & open-source projects.
+    
+{/* <SimulationEmbed /> */}
+
+
+      <section className="border-t border-slate-200 bg-slate-50 px-4 py-12 dark:border-slate-800 dark:bg-slate-900/50">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-8 text-center">
+            <h2 className="text-2xl font-bold tracking-tight md:text-3xl">Free Arduino book</h2>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+              A complete guide to electronics, automation and open-source projects.
             </p>
           </div>
           <MyBook />

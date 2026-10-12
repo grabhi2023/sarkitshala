@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -14,31 +14,35 @@ import image7 from '../../../public/AllImages/image6.webp';
 import image8 from '../../../public/AllImages/RGBLED.webp';
 
 const posts = [
-  { id: 1, slug: "/jetson", title: "NVIDIA Jetson Nano Developer Kit", image: image1 },
-  { id: 2, slug: "arduino/interfacing-led", title: "Control an LED with Arduino", image: image2 },
-  { id: 3, slug: "arduino/interfacing-rgb-led", title: "Interfacing RGB LED with Arduino", image: image3 },
-  { id: 4, slug: "arduino/interfacing-seven-segment-display", title: "Interfacing 7-Segment Display", image: image4 },
-  { id: 5, slug: "arduino/interfacing-dc-motor", title: "Interfacing DC Motor", image: image5 },
-  { id: 6, slug: "arduino/interfacing-oled-display-module", title: "Interfacing OLED Display", image: image6 },
-  { id: 7, slug: "arduino/interfacing-pir-sensor", title: "Interfacing PIR Sensor", image: image7 },
-  { id: 8, slug: "arduino/interfacing-dht22", title: "Interfacing DHT11 Sensor", image: image8 },
+  { id: 1, href: '/jetson', title: 'NVIDIA Jetson Nano Developer Kit', image: image1 },
+  { id: 2, href: '/arduino/interfacing-led', title: 'Control an LED with Arduino', image: image2 },
+  { id: 3, href: '/arduino/interfacing-rgb-led', title: 'Interfacing RGB LED with Arduino', image: image3 },
+  { id: 4, href: '/arduino/interfacing-seven-segment-display', title: 'Interfacing 7-Segment Display', image: image4 },
+  { id: 5, href: '/arduino/interfacing-dc-motor', title: 'Interfacing DC Motor', image: image5 },
+  { id: 6, href: '/arduino/interfacing-oled-display-module', title: 'Interfacing OLED Display', image: image6 },
+  { id: 7, href: '/arduino/interfacing-pir-sensor', title: 'Interfacing PIR Sensor', image: image7 },
+  { id: 8, href: '/arduino/interfacing-dht22', title: 'Interfacing DHT22 Sensor', image: image8 },
 ];
 
 const RecentPosts = () => {
   const listRef = useRef(null);
-  const [isHovered, setIsHovered] = useState(false);
+  const pausedRef = useRef(false);
 
   useEffect(() => {
     const list = listRef.current;
-    if (!list || window.innerWidth < 768) return;
+    if (!list) return undefined;
+
+    const desktop = window.matchMedia('(min-width: 768px)');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (!desktop.matches || reduceMotion.matches) return undefined;
 
     let frame;
-    let pos = 0;
+    let pos = list.scrollTop;
 
     const step = () => {
-      if (!isHovered && list) {
-        pos += 0.6;
+      if (!pausedRef.current) {
         const maxScroll = list.scrollHeight - list.clientHeight;
+        pos += 0.5;
         if (pos >= maxScroll) pos = 0;
         list.scrollTop = pos;
       }
@@ -47,52 +51,65 @@ const RecentPosts = () => {
 
     frame = requestAnimationFrame(step);
     return () => cancelAnimationFrame(frame);
-  }, [isHovered]);
+  }, []);
+
+  const pause = () => {
+    pausedRef.current = true;
+  };
+
+  const resume = () => {
+    if (listRef.current) listRef.current.scrollTop = Math.round(listRef.current.scrollTop);
+    pausedRef.current = false;
+  };
 
   return (
-    <div className="w-full h-[400px] rounded-2xl border border-border bg-card overflow-hidden flex flex-col">
-
-      {/* Header */}
-      <div className="shrink-0 flex items-center justify-between px-5 py-3.5 border-b border-border bg-card">
-        <span className="text-sm font-semibold text-foreground">Recent Posts</span>
-        <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+    <section
+      aria-label="Recent posts"
+      className="relative flex h-[360px] w-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900 lg:h-[380px]"
+    >
+      <div className="flex shrink-0 items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3.5 dark:border-slate-700 dark:bg-slate-800/60">
+        <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Recent posts</h2>
+        <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-[11px] font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">
           Latest
         </span>
       </div>
 
-      {/* Scrollable List */}
       <ul
         ref={listRef}
-        className="flex-1 overflow-y-auto px-3 py-3 space-y-2 scrollbar-none"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        onMouseEnter={pause}
+        onMouseLeave={resume}
+        onFocus={pause}
+        onBlur={resume}
+        onTouchStart={pause}
+        className="flex-1 space-y-1 overflow-y-auto px-3 py-3 [scrollbar-width:thin]"
       >
-        {posts.map(({ id, slug, title, image }) => (
+        {posts.map(({ id, href, title, image }) => (
           <li key={id}>
             <Link
-              href={`/${slug}`}
-              className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-accent border border-transparent hover:border-border transition-all duration-200 group"
+              href={href}
+              className="group flex items-center gap-3 rounded-xl border border-transparent p-2.5 transition-colors hover:border-slate-200 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 dark:hover:border-slate-700 dark:hover:bg-slate-800"
             >
-              {/* Thumbnail */}
-              <div className="relative shrink-0 w-14 h-14 rounded-lg overflow-hidden bg-muted">
+              <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-800">
                 <Image
                   src={image}
-                  alt={title}
+                  alt=""
                   fill
-                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  sizes="56px"
+                  className="object-cover transition-transform duration-300 group-hover:scale-105"
                 />
               </div>
 
-              {/* Title */}
-              <p className="text-[13px] font-medium leading-snug text-muted-foreground group-hover:text-foreground transition-colors line-clamp-2">
+              <p className="line-clamp-2 text-[13px] font-medium leading-snug text-slate-700 transition-colors group-hover:text-blue-600 dark:text-slate-300 dark:group-hover:text-blue-400">
                 {title}
               </p>
 
-              {/* Arrow */}
               <svg
-                className="w-3.5 h-3.5 shrink-0 text-muted-foreground/40 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all ml-auto"
-                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+                className="ml-auto h-4 w-4 shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-blue-500 dark:text-slate-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+                aria-hidden="true"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
@@ -101,9 +118,8 @@ const RecentPosts = () => {
         ))}
       </ul>
 
-      {/* Bottom fade */}
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-t from-card to-transparent rounded-b-2xl" />
-    </div>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-white to-transparent dark:from-slate-900" />
+    </section>
   );
 };
 

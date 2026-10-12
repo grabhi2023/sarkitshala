@@ -1,262 +1,206 @@
+import { notFound } from 'next/navigation';
+import sanitizeHtml from 'sanitize-html';
+import getData from '@/app/apiCall';
+import PostView from '@/components/blog/PostView';
+import {
+  getLegacy,
+  getPublishedSlugs,
+  legacySlugs,
+  loadPost,
+  pageMetadata,
+  postMetadata,
+  truncate,
+} from '@/lib/blogPage';
 
+const API = 'https://sarkitshala.com/api/experiments/Res';
+const META_API = 'https://sarkitshala.com/api/experiments/ResMeta';
+const DEFAULT_DESCRIPTION =
+  'Explore Raspberry Pi tutorials and projects step by step. Learn about interfacing sensors, displays, and other modules with Raspberry Pi.';
 
+const OUTPUT_OPTIONS = {
+  allowedTags: ['strong', 'b', 'em', 'i', 'u', 'code', 'br', 'span', 'p', 'a', 'ul', 'ol', 'li'],
+  allowedAttributes: { a: ['href', 'rel', 'target'] },
+  allowedSchemes: ['http', 'https', 'mailto'],
+  transformTags: {
+    a: (tagName, attribs) =>
+      attribs.href
+        ? { tagName: 'a', attribs: { href: attribs.href, rel: 'noopener noreferrer', target: '_blank' } }
+        : { tagName: 'span', attribs: {} },
+  },
+};
 
-import getData from "@/app/apiCall";
+const BOX = 'mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-900';
 
+const list = (value) => (Array.isArray(value) ? value : []);
+const lines = (value) => (Array.isArray(value) ? value : typeof value === 'string' && value ? value.split('\n') : []);
+const isHttp = (value) => typeof value === 'string' && /^https?:\/\//i.test(value);
 
 export async function generateStaticParams() {
-  try {
-    const response = await getData('https://sarkitshala.com/api/experiments/Res');
-    
-    
-    
-    if (Array.isArray(response)) {
-      return response.map((post) => ({
-        Experiment: String(post.slug), // ⚠️ 'ExperimentId' nahi
-      }));
-    }
-    
-    return [];
-  } catch (error) {
-    console.error('Error in generateStaticParams:', error);
-    return [];
-  }
+  const [legacy, posts] = await Promise.all([
+    getData(META_API)
+      .then(legacySlugs)
+      .catch((error) => {
+        console.error('raspberry static params failed:', error.message);
+        return [];
+      }),
+    getPublishedSlugs('raspberry'),
+  ]);
+
+  return [...new Set([...legacy, ...posts])].map((Experiment) => ({ Experiment }));
 }
 
 export async function generateMetadata({ params }) {
-  // ⚠️ params await karo
   const { Experiment } = await params;
-  
-  let experimentData = {};
-  
-  try {
-    // API call with exId
-    experimentData = await getData(
-      'https://sarkitshala.com/api/experiments/Res',
-      Experiment
-    );
-    
-   
-    
-  } catch (error) {
-    console.error("Failed to fetch metadata:", error.message);
-  }
 
-  // Fallback values
-  const experimentTitle = experimentData?.title || `${Experiment} - Raspberry Pi Tutorial`;
-  const experimentOverview = experimentData?.description || 
-    "Explore Raspberry Pi tutorials and projects step by step. Learn about interfacing sensors, displays, and other modules with Raspberry Pi.";
-  const experimentImage = experimentData?.image1 || "https://sarkitshala.com/opengraph-image.jpg";
-  const experimentSlug = `https://sarkitshala.com/raspberry/${Experiment}`;
+  const post = await loadPost('raspberry', Experiment);
+  if (post) return postMetadata(post, 'raspberry');
 
-  // Structured data for SEO
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "Article",
-    headline: experimentTitle,
-    description: experimentOverview,
-    author: {
-      "@type": "Organization",
-      name: "Sarkitshala Team",
-    },
-    publisher: {
-      "@type": "Organization",
-      name: "Sarkitshala",
-      logo: {
-        "@type": "ImageObject",
-        url: "https://sarkitshala.com/logo.jpg",
-      },
-    },
-    datePublished: new Date().toISOString(),
-    dateModified: new Date().toISOString(),
-    image: experimentImage,
-  };
+  const data = await getLegacy(() => getData(META_API, Experiment));
+  if (!data) notFound();
 
-  return {
-    metadataBase: new URL("https://sarkitshala.com"),
-    title: `${experimentTitle} | Sarkitshala`,
-    description: experimentOverview,
-    
-    robots: {
-      index: true,
-      follow: true,
-    },
-    
-    openGraph: {
-      title: experimentTitle,
-      description: experimentOverview,
-      url: experimentSlug,
-      images: [
-        {
-          url: experimentImage,
-          width: 1200,
-          height: 630,
-          alt: experimentTitle,
-        }
-      ],
-      site_name: "Sarkitshala",
-      type: "article",
-    },
-    
-    twitter: {
-      card: "summary_large_image",
-      title: experimentTitle,
-      description: experimentOverview,
-      images: [experimentImage],
-    },
-    
-    canonical: experimentSlug,
-    
-    alternates: {
-      canonical: experimentSlug,
-      languages: {
-        "en-US": `https://sarkitshala.com/en/raspberry/${Experiment}`,
-        "hi-IN": `https://sarkitshala.com/hi/raspberry/${Experiment}`,
-      },
-    },
-    
-    authors: [{ name: "Sarkitshala Team" }],
-    
-    // other metadata
-    other: {
-      "article:author": "Sarkitshala Team",
-    },
-    
-    // Structured data ko stringify karo
-    jsonLd: structuredData,
-  };
+  const title = data.title || 'Raspberry Pi Tutorial';
+  return pageMetadata({
+    category: 'raspberry',
+    slug: Experiment,
+    title: `${title} | Sarkitshala`,
+    ogTitle: `${title} | Raspberry Pi Projects & Tutorials`,
+    description: truncate(data.metaDescription || data.description || DEFAULT_DESCRIPTION),
+    image: data.image1,
+  });
 }
 
-
-
 export default async function Page({ params }) {
-    const { Experiment } = await params; 
-    
-    const data = await getData(`https://sarkitshala.com/api/experiments/Res`, Experiment)
-  
-      if(data)
-      {
-        return (
-    <div className="articleContainer ">
-      
-      <h1 >{data.title}</h1>
+  const { Experiment } = await params;
 
-      <section className="mb-3 p-4 rounded-lg border border-gray-300 shadow-sm">
-        <p>{data.description}</p>
-      </section>
+  const post = await loadPost('raspberry', Experiment);
+  if (post) return <PostView post={post} />;
 
-      {data.sections.map((section, index) => (
-        <section key={index}  className="mb-3 p-4 rounded-lg border border-gray-300 shadow-sm">
-          {section.heading && (
-            <h2 className="text-xl font-bold mb-4">{section.heading}</h2>
-          )}
+  const data = await getLegacy(() => getData(API, Experiment));
+  if (!data) notFound();
 
-          {section.content && <p>{section.content}</p>}
+  return <LegacyRaspberryPage data={data} />;
+}
 
-          {renderList(section.points)}
-          {renderList(section.items)}
-          {renderSteps(section.steps)}
-          {renderCode(section.code)}
+function LegacyRaspberryPage({ data }) {
+  return (
+    <div className="articleContainer">
+      <h1>{data.title}</h1>
 
-          {section.run_command && (
+      {data.description ? (
+        <section className={BOX}>
+          <p>{data.description}</p>
+        </section>
+      ) : null}
+
+      {list(data.sections).map((section, index) => (
+        <section key={index} className={BOX}>
+          {section.heading ? <h2 className="mb-4 text-xl font-bold">{section.heading}</h2> : null}
+          {section.content ? <p>{section.content}</p> : null}
+
+          <BulletList items={section.points} />
+          <BulletList items={section.items} />
+          <StepList steps={section.steps} />
+          <CodeLines code={section.code} />
+
+          {section.run_command ? (
             <p className="mt-4">
               <strong>Run Command:</strong> <code>{section.run_command}</code>
             </p>
-          )}
+          ) : null}
 
-          {section.output && (
-            <p className="mt-4" dangerouslySetInnerHTML={{ __html: section.output }} />
-          )}
+          {section.output ? (
+            <p className="mt-4" dangerouslySetInnerHTML={{ __html: sanitizeHtml(String(section.output), OUTPUT_OPTIONS) }} />
+          ) : null}
 
-          {section.faqs && renderFAQs(section.faqs)}
+          <FaqList faqs={section.faqs} />
 
-          {section.links && (
-            <ul className="mt-4">
-              {section.links.map((link, i) => (
-                <li key={i}>
-                  <a href={link} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                    {link}
-                  </a>
-                </li>
-              ))}
+          {list(section.links).filter(isHttp).length > 0 ? (
+            <ul className="mt-4 space-y-1">
+              {list(section.links)
+                .filter(isHttp)
+                .map((link, i) => (
+                  <li key={i}>
+                    <a href={link} target="_blank" rel="noopener noreferrer" className="break-all text-blue-600 underline dark:text-blue-400">
+                      {link}
+                    </a>
+                  </li>
+                ))}
             </ul>
-          )}
+          ) : null}
 
-          {section.subsections && section.subsections.map((sub, i) => (
-            <div key={i} className="ml-5 mt-4 border-l-4 border-gray-300 pl-4">
-              {sub.subheading && (
-                <h4 className="text-lg font-semibold mb-2">{sub.subheading}</h4>
-              )}
-
-              {sub.content && <p>{sub.content}</p>}
-              {renderList(sub.points)}
-              {renderList(sub.items)}
-              {renderSteps(sub.steps)}
-              {renderCode(sub.code)}
-              {renderCommands(sub.commands)}
-
-              {sub.note && (
-                <p className="mt-2"><strong>Note:</strong> {sub.note}</p>
-              )}
+          {list(section.subsections).map((sub, i) => (
+            <div key={i} className="ml-2 mt-4 border-l-4 border-slate-300 pl-4 dark:border-slate-600 sm:ml-5">
+              {sub.subheading ? <h4 className="mb-2 text-lg font-semibold">{sub.subheading}</h4> : null}
+              {sub.content ? <p>{sub.content}</p> : null}
+              <BulletList items={sub.points} />
+              <BulletList items={sub.items} />
+              <StepList steps={sub.steps} />
+              <CodeLines code={sub.code} />
+              <CodeLines code={sub.commands} />
+              {sub.note ? (
+                <p className="mt-2">
+                  <strong>Note:</strong> {sub.note}
+                </p>
+              ) : null}
             </div>
           ))}
         </section>
       ))}
     </div>
   );
-
-        
-      }
-  
-     
 }
-function renderList(items) {
-  return items && (
-    <ul className="list-disc pl-5 mb-2">
-      {items.map((item, i) => (
+
+function BulletList({ items }) {
+  const rows = list(items);
+  if (rows.length === 0) return null;
+  return (
+    <ul className="mb-2 list-disc space-y-1 pl-5">
+      {rows.map((item, i) => (
         <li key={i}>{item}</li>
       ))}
     </ul>
   );
 }
 
-function renderSteps(steps) {
-  return steps && (
-    <ol className="list-decimal pl-5 mb-2">
-      {steps.map((step, i) => (
+function StepList({ steps }) {
+  const rows = list(steps);
+  if (rows.length === 0) return null;
+  return (
+    <ol className="mb-2 list-decimal space-y-1 pl-5">
+      {rows.map((step, i) => (
         <li key={i}>{step}</li>
       ))}
     </ol>
   );
 }
 
-function renderCode(code) {
-  return code && (
-    <pre className="bg-gray-200 p-4 overflow-x-auto rounded font-mono text-sm border my-4">
-      {code.map((line, i) => (
-        <code key={i} className="block">{line}</code>
-      ))}
-    </pre>
-  );
-}
-
-function renderCommands(commands) {
-  return commands && (
-    <pre className="bg-gray-100 p-4 overflow-x-auto rounded font-mono text-sm border my-4">
-      {commands.map((cmd, i) => (
-        <code key={i} className="block">{cmd}</code>
-      ))}
-    </pre>
-  );
-}
-
-function renderFAQs(faqs) {
+function CodeLines({ code }) {
+  const rows = lines(code);
+  if (rows.length === 0) return null;
   return (
-    <div className="mt-4">
-      {faqs.map((faq, i) => (
-        <div key={i} className="mb-3">
-          <p><strong>Q:</strong> {faq.question}</p>
-          <p><strong>A:</strong> {faq.answer}</p>
+    <pre className="my-4 overflow-x-auto rounded-lg border border-slate-700 bg-slate-900 p-4 font-mono text-sm text-slate-100">
+      {rows.map((line, i) => (
+        <code key={i} className="block">
+          {line}
+        </code>
+      ))}
+    </pre>
+  );
+}
+
+function FaqList({ faqs }) {
+  const rows = list(faqs);
+  if (rows.length === 0) return null;
+  return (
+    <div className="mt-4 space-y-3">
+      {rows.map((faq, i) => (
+        <div key={i}>
+          <p>
+            <strong>Q:</strong> {faq?.question}
+          </p>
+          <p>
+            <strong>A:</strong> {faq?.answer}
+          </p>
         </div>
       ))}
     </div>

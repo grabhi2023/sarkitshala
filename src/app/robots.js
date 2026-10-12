@@ -1,3 +1,5 @@
+import { SITE_URL } from '@/lib/seo';
+
 export default function robots() {
   return {
     rules: [
@@ -5,19 +7,17 @@ export default function robots() {
         userAgent: '*',
         allow: '/',
         disallow: [
-          '/*?_rsc=*',       // RSC-related
-          '/*?*rsc=*',        // Query string patterns
+          '/*?_rsc=',
           '/admin',
+          '/api',
           '/dashboard',
           '/login',
           '/register',
           '/user-profile',
-          '/api',             // API routes (optional if public)
-          '/private',         // Any private sections
+          '/private',
         ],
       },
-     
     ],
-    sitemap: 'https://sarkitshala.com/sitemap.xml',
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }
