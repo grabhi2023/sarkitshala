@@ -1,43 +1,41 @@
+import fs from 'node:fs';
+import path from 'node:path';
+
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-const modules = {
-  databaseConnect: () => import('@/lib/databaseConnect'),
-  Post: () => import('@/models/Post'),
-  guard: () => import('@/lib/guard'),
-  docx: () => import('@/lib/import/docx'),
-  cloudinary: () => import('@/lib/cloudinary'),
-  slug: () => import('@/lib/slug'),
-  config: () => import('@/lib/config'),
-  http: () => import('@/lib/http'),
-  sharp: () => import('sharp'),
-  mammoth: () => import('mammoth'),
-  cheerio: () => import('cheerio'),
-  sanitizeHtml: () => import('sanitize-html'),
+const root = process.cwd();
+const modules = path.join(root, 'node_modules');
+
+const version = (dir) => {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8')).version;
+  } catch {
+    return null;
+  }
 };
 
-const envNames = [
-  'MONGO_URI',
-  'MONGODB_URI',
-  'CLOUDINARY_CLOUD_NAME',
-  'CLOUDINARY_API_KEY',
-  'CLOUDINARY_API_SECRET',
-  'ADMIN_JWT_SECRET',
-  'ADMIN_ACCESS_KEY',
-];
+const list = (dir) => {
+  try {
+    return fs.readdirSync(dir);
+  } catch {
+    return null;
+  }
+};
 
 export async function GET() {
-  const imports = {};
-  for (const [name, load] of Object.entries(modules)) {
-    try {
-      await load();
-      imports[name] = 'ok';
-    } catch (error) {
-      imports[name] = String(error?.message || error).slice(0, 300);
-    }
-  }
+  const img = path.join(modules, '@img');
 
-  const env = Object.fromEntries(envNames.map((name) => [name, Boolean(process.env[name])]));
-
-  return Response.json({ node: process.version, imports, env });
+  return Response.json({
+    node: process.version,
+    cwd: root,
+    sharpVersion: version(path.join(modules, 'sharp')),
+    imgPackages: list(img),
+    versions: {
+      'sharp-linux-x64': version(path.join(img, 'sharp-linux-x64')),
+      'sharp-libvips-linux-x64': version(path.join(img, 'sharp-libvips-linux-x64')),
+    },
+    libvipsFiles: list(path.join(img, 'sharp-libvips-linux-x64', 'lib')),
+    sharpBinaries: list(path.join(img, 'sharp-linux-x64', 'lib')),
+  });
 }
