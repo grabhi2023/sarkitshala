@@ -3,6 +3,10 @@ const nextConfig = {
   poweredByHeader: false,
   compress: true,
 
+  env: {
+    NEXT_PUBLIC_SITE_URL: 'https://sarkitshala.com',
+  },
+
   images: {
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60 * 60 * 24 * 30,
