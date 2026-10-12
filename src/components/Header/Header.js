@@ -16,7 +16,7 @@ const iotLinks = [
   { href: "/arduino", label: "Arduino", desc: "Sensors, motors and displays" },
   { href: "/esp", label: "ESP32", desc: "WiFi and Bluetooth projects" },
   { href: "/raspberry", label: "Raspberry Pi", desc: "Linux, Python and GPIO" },
-  { href: "/stm32", label: "STM32", desc: "ARM microcontroller guides" },
+  { href: "/stm32-microcontroller-setup-guide", label: "STM32", desc: "ARM microcontroller guides" },
 ];
 
 const isActivePath = (pathname, href) => pathname === href || pathname.startsWith(`${href}/`);
