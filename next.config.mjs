@@ -20,6 +20,13 @@ const nextConfig = {
 
   serverExternalPackages: ['sharp', 'mammoth', 'cheerio', 'sanitize-html'],
 
+  outputFileTracingIncludes: {
+    '/api/import-docx': [
+      './node_modules/sharp/**/*',
+      './node_modules/@img/**/*',
+    ],
+  },
+
   async headers() {
     return [
       {
